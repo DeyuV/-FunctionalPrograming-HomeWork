@@ -1,15 +1,20 @@
 package com.homework.exercises;
 
+import com.homework.utils.Address;
 import com.homework.utils.Employee;
 import com.homework.utils.Employees;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 import static com.shazam.shazamcrest.MatcherAssert.assertThat;
 import static com.shazam.shazamcrest.matcher.Matchers.sameBeanAs;
@@ -27,11 +32,7 @@ public class Pack_4_Streams_Difficult {
         // the solution has to be a single statement, complexity O(n^2) is acceptable
 
         Set<String> items = new HashSet<>();
-        int i = 0;
-        for(Employee t: EMPLOYEES){
-            System.out.println(i + " " + t.getFirstName() + " " + t.getSurname());
-            i++;
-        }
+
         String result = EMPLOYEES
                 .stream()
                 .filter(t -> !items.add(t.getFirstName() + " " + t.getSurname()))
@@ -50,9 +51,14 @@ public class Pack_4_Streams_Difficult {
         // consider all employees with the same 2 first characters of the home address post code a single group
         // you can collect to map and then stream over it, however the solution has to be a single statement
 
-        long result = 0;
-
-        //TODO write your code here
+        long result = EMPLOYEES
+                .stream()
+                .map(t -> t.getHomeAddress().getPostCode().substring(0,2))
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
+                .values()
+                .stream()
+                .filter(t -> t >= 5)
+                .collect(Collectors.summingLong(Long::longValue));
 
         assertThat(result, sameBeanAs(110L));
     }
@@ -62,9 +68,11 @@ public class Pack_4_Streams_Difficult {
     public void exercise_3_flatMap() {
         // find the total number of all different home and correspondence addresses
 
-        long result = 0;
-
-        //TODO write your code here
+        long result = EMPLOYEES
+                .stream()
+                .flatMap(t -> Stream.of(t.getHomeAddress(), t.getCorrespondenceAddress().get()))
+                .distinct()
+                .count();
 
         assertThat(result, sameBeanAs(1820L));
     }
@@ -77,9 +85,15 @@ public class Pack_4_Streams_Difficult {
         // you can collect to map and then stream over it, however the solution has to be a single statement
 
         DecimalFormat decimalFormat = new DecimalFormat("£#,###.00");
-        List<String> result = null;
 
-        //TODO write your code here
+        List<String> result = EMPLOYEES
+                .stream()
+                .map(t -> t.getCompany().getName() + "," + t.getSalary().intValue())
+                .collect(Collectors.groupingBy(s -> s.split(",")[0], Collectors.summingInt(t -> Integer.parseInt(t.toString().split(",")[1]))))
+                .entrySet()
+                .stream()
+                .map(t -> t.getKey() + " - " + decimalFormat.format(t.getValue().intValue()))
+                .collect(Collectors.toList());
 
         assertThat(result, sameBeanAs(asList(
                 "Anglo American - £12,119,153.00",
@@ -105,9 +119,15 @@ public class Pack_4_Streams_Difficult {
         // hint: look at Pattern.compile(regex).splitAsStream(string)
 
         String string = "dog" + "\n" + "bird" + "\n" + "cat" + "\n" + "cat" + "\n" + "dog" + "\n" + "cat";
-        List<String> result = null;
-
-        //TODO write your code here
+        List<String> result = Pattern
+                .compile("\n")
+                .splitAsStream(string)
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
+                .entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(t -> t.getKey() + " - " + t.getValue())
+                .collect(Collectors.toList());
 
         assertThat(result, sameBeanAs(asList(
                 "bird - 1",
@@ -127,7 +147,7 @@ public class Pack_4_Streams_Difficult {
         int[] columns = {6199, 9519, 6745, 8864, 8788, 7322, 7341, 7395};
         long result = 0;
 
-        //TODO write your code here
+
 
         assertThat(result, sameBeanAs(4294973013L));
     }
