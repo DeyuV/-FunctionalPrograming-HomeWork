@@ -25,7 +25,7 @@ public class Pack_4_Streams_Difficult {
 
     private static final List<Employee> EMPLOYEES = Employees.allEmployees();
 
-    @Ignore
+
     @Test
     public void exercise_1_findFirst() {
         // find whether there are two employees with the same first name and surname and return the name
@@ -41,10 +41,10 @@ public class Pack_4_Streams_Difficult {
                 .get();
 
 
-        assertThat(result, sameBeanAs("Holly Davies"));
+        assertThat(result, sameBeanAs("Jacob Mason"));
     }
 
-    @Ignore
+
     @Test
     public void exercise_2_groupingBy_counting() {
         // find the total number of groups of at least 5 employees living close to each other
@@ -60,10 +60,9 @@ public class Pack_4_Streams_Difficult {
                 .filter(t -> t >= 5)
                 .collect(Collectors.summingLong(Long::longValue));
 
-        assertThat(result, sameBeanAs(110L));
+        assertThat(result, sameBeanAs(611L));
     }
 
-    @Ignore
     @Test
     public void exercise_3_flatMap() {
         // find the total number of all different home and correspondence addresses
@@ -77,7 +76,6 @@ public class Pack_4_Streams_Difficult {
         assertThat(result, sameBeanAs(1820L));
     }
 
-    @Ignore
     @Test
     public void exercise_4_groupingBy_summingInt() {
         // find how much in total each company pays (annually) to their employees, order result by amount
@@ -92,6 +90,7 @@ public class Pack_4_Streams_Difficult {
                 .collect(Collectors.groupingBy(s -> s.split(",")[0], Collectors.summingInt(t -> Integer.parseInt(t.toString().split(",")[1]))))
                 .entrySet()
                 .stream()
+                .sorted(Map.Entry.comparingByValue( (a, b) -> b - a))
                 .map(t -> t.getKey() + " - " + decimalFormat.format(t.getValue().intValue()))
                 .collect(Collectors.toList());
 
@@ -109,7 +108,7 @@ public class Pack_4_Streams_Difficult {
         )));
     }
 
-    @Ignore
+
     @Test
     public void exercise_5_patternCompileSplitAsStream() {
         // count the instances of words and output a list of formatted strings
@@ -136,7 +135,7 @@ public class Pack_4_Streams_Difficult {
         )));
     }
 
-    @Ignore
+
     @Test
     public void exercise_6_mapToLong() {
         // the rows and columns of the chess board are assigned arbitrary numbers (instead of letters and digits)
@@ -145,14 +144,14 @@ public class Pack_4_Streams_Difficult {
         // calculate the sum of values of all squares
         int[] rows = {6432, 8997, 8500, 7036, 9395, 9372, 9715, 9634};
         int[] columns = {6199, 9519, 6745, 8864, 8788, 7322, 7341, 7395};
-        long result = 0;
-
-
+        long result = Arrays.stream(rows)
+                .mapToLong(t -> Arrays.stream(columns).mapToLong(a -> t * a).sum())
+                .sum();
 
         assertThat(result, sameBeanAs(4294973013L));
     }
 
-    @Ignore
+
     @Test
     public void exercise_7_randomLongs_concat_toArray() {
         // concatenate two random streams of numbers (seed is fixed for testing purposes),
@@ -162,9 +161,15 @@ public class Pack_4_Streams_Difficult {
         // and finally collect the result into an array
         LongStream longs = new Random(0).longs(10);
         IntStream ints = new Random(0).ints(10);
-        int[] result = null;
-
-        //TODO write your code here
+        long[] result = Stream
+                .concat(longs.mapToObj(t -> t + ""), ints.mapToObj(t -> t + ""))
+                .mapToLong(t ->  Long.parseLong(t))
+                .map(t -> t < 0 ? t * (-1) : t)
+                .sorted()
+                .skip(5)
+                .limit(10)
+                .map(t -> t % 1000)
+                .toArray();
 
         assertThat(result, sameBeanAs(new long[] {106, 266, 402, 858, 313, 688, 303, 137, 766, 896}));
     }
